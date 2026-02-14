@@ -3,16 +3,15 @@ import React from 'react';
 import Icon from './Icon';
 
 const IntegrationCard: React.FC<{ name: string; description: string; icon: string; url: string; }> = ({ name, description, icon, url }) => (
-    <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 text-center flex flex-col">
-        <div className="bg-white border inline-block p-4 rounded-full mb-4 self-center">
-           {/* Placeholder for actual logos */}
-           <Icon name={icon} className="w-8 h-8 text-gray-700" />
+    <div className="bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-700 rounded-lg p-6 text-center flex flex-col">
+        <div className="bg-white dark:bg-gray-600 border dark:border-gray-500 inline-block p-4 rounded-full mb-4 self-center">
+           <Icon name={icon} className="w-8 h-8 text-gray-700 dark:text-gray-200" />
         </div>
-        <h4 className="text-lg font-bold text-gray-800">{name}</h4>
-        <p className="text-gray-600 text-sm mt-2 mb-4 flex-grow">{description}</p>
+        <h4 className="text-lg font-bold text-gray-800 dark:text-gray-200">{name}</h4>
+        <p className="text-gray-600 dark:text-gray-400 text-sm mt-2 mb-4 flex-grow">{description}</p>
         <button 
             onClick={() => window.open(url, '_blank')}
-            className="w-full mt-auto bg-white border border-gray-300 text-gray-700 font-semibold px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors"
+            className="w-full mt-auto bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 text-gray-700 dark:text-gray-200 font-semibold px-4 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-500 transition-colors"
         >
             Conectar
         </button>
@@ -21,9 +20,9 @@ const IntegrationCard: React.FC<{ name: string; description: string; icon: strin
 
 const IntegrationsView: React.FC = () => {
   return (
-    <div className="bg-white p-6 rounded-lg shadow-md">
-        <h3 className="text-xl font-bold text-gray-800 mb-2">Integrações</h3>
-        <p className="text-gray-600 mb-6">Conecte o Task Pro com as ferramentas que você já usa para criar um fluxo de trabalho unificado.</p>
+    <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+        <h3 className="text-xl font-bold text-gray-800 dark:text-gray-200 mb-2">Integrações</h3>
+        <p className="text-gray-600 dark:text-gray-400 mb-6">Conecte o Task Pro com as ferramentas que você já usa para criar um fluxo de trabalho unificado.</p>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             <IntegrationCard 

@@ -1,6 +1,7 @@
 
 import React from 'react';
-import { AppData, Task } from '../types';
+// Fix: Import 'KanbanColumn' to be used for explicit typing.
+import { AppData, Task, KanbanColumn } from '../types';
 import TaskCard from './TaskCard';
 
 interface KanbanBoardProps {
@@ -26,7 +27,8 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({ data, setData, onTaskClick })
     if (!task || !destinationColumn) return;
 
     // Find the source column
-    const sourceColumnId = Object.values(data.columns).find(col => col.taskIds.includes(taskId))?.id;
+    // Fix: Explicitly type 'col' as 'KanbanColumn' to resolve property access errors.
+    const sourceColumnId = Object.values(data.columns).find((col: KanbanColumn) => col.taskIds.includes(taskId))?.id;
     if (!sourceColumnId) return;
     
     const sourceColumn = data.columns[sourceColumnId];

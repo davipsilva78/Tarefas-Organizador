@@ -101,7 +101,8 @@ const App: React.FC = () => {
         const now = new Date();
         const tasksToUpdate: Task[] = [];
 
-        Object.values(data.tasks).forEach(task => {
+        // Fix: Explicitly type 'task' as 'Task' to resolve property access errors.
+        Object.values(data.tasks).forEach((task: Task) => {
             if (!task.hasReminder || !task.dueDate || task.reminderSent) {
                 return;
             }
@@ -149,7 +150,8 @@ const App: React.FC = () => {
     const { keyword, startDate, endDate, location } = filters;
     const keywordLower = keyword.toLowerCase();
 
-    const filteredTasks = Object.values(data.tasks).filter(task => {
+    // Fix: Explicitly type 'task' as 'Task' to resolve property access errors.
+    const filteredTasks = Object.values(data.tasks).filter((task: Task) => {
         const keywordMatch = !keywordLower || task.title.toLowerCase().includes(keywordLower) || (task.description && task.description.toLowerCase().includes(keywordLower));
         const startDateMatch = !startDate || (task.createdAt && new Date(task.createdAt) >= new Date(startDate));
         const endDateMatch = !endDate || (task.createdAt && new Date(task.createdAt) <= new Date(endDate));
@@ -234,7 +236,8 @@ const App: React.FC = () => {
         const newUsers = { ...prev.users };
         delete newUsers[userId];
         const newTasks = { ...prev.tasks };
-        Object.values(newTasks).forEach(task => {
+        // Fix: Explicitly type 'task' as 'Task' to resolve property access errors.
+        Object.values(newTasks).forEach((task: Task) => {
             if (task.assignees?.some(u => u.id === userId)) {
                 task.assignees = task.assignees.filter(u => u.id !== userId);
             }
