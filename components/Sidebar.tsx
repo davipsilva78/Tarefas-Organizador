@@ -6,9 +6,10 @@ import Icon from './Icon';
 interface SidebarProps {
   currentView: ViewType;
   setCurrentView: (view: ViewType) => void;
+  visibleViews: { [key in ViewType]?: boolean };
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ currentView, setCurrentView }) => {
+const Sidebar: React.FC<SidebarProps> = ({ currentView, setCurrentView, visibleViews }) => {
   const mainNavItems = [
     { view: ViewType.Dashboard, icon: 'dashboard' },
     { view: ViewType.List, icon: 'list' },
@@ -26,6 +27,14 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, setCurrentView }) => {
     { view: ViewType.Integrations, icon: 'integrations' },
     { view: ViewType.Settings, icon: 'settings' },
   ];
+
+  const visibleMainNavItems = mainNavItems.filter(
+    item => visibleViews[item.view] !== false
+  );
+
+  const visibleToolsNavItems = toolsNavItems.filter(
+    item => visibleViews[item.view] !== false
+  );
 
   const NavList: React.FC<{ items: { view: ViewType; icon: string }[] }> = ({ items }) => (
     <ul>
@@ -56,10 +65,10 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, setCurrentView }) => {
         <h1 className="hidden md:block ml-3 text-xl font-bold text-gray-700 dark:text-gray-300">Task Pro</h1>
       </div>
       <nav className="flex-1 px-2 md:px-4 py-4 overflow-y-auto">
-        <NavList items={mainNavItems} />
+        <NavList items={visibleMainNavItems} />
         <hr className="my-4 border-gray-200 dark:border-gray-700" />
         <h3 className="hidden md:block px-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Ferramentas</h3>
-        <NavList items={toolsNavItems} />
+        <NavList items={visibleToolsNavItems} />
       </nav>
       <div className="px-4 pb-4">
         <div className="bg-custom-light-blue dark:bg-gray-700 p-4 rounded-lg text-center hidden md:block">

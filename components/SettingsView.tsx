@@ -1,15 +1,31 @@
 
 import React from 'react';
 import { themes, Theme } from '../data/themes';
+import { ViewType } from '../types';
 import Icon from './Icon';
 
 interface SettingsViewProps {
   themes: { [key: string]: Theme };
   activeTheme: string;
   onThemeChange: (themeKey: string) => void;
+  visibleViews: { [key in ViewType]?: boolean };
+  onVisibleViewsChange: (view: ViewType, isVisible: boolean) => void;
 }
 
-const SettingsView: React.FC<SettingsViewProps> = ({ themes, activeTheme, onThemeChange }) => {
+const SettingsView: React.FC<SettingsViewProps> = ({ themes, activeTheme, onThemeChange, visibleViews, onVisibleViewsChange }) => {
+  const toggleableViews: ViewType[] = [
+    ViewType.List,
+    ViewType.Kanban,
+    ViewType.Gantt,
+    ViewType.Calendar,
+    ViewType.Scrum,
+    ViewType.Team,
+    ViewType.Reports,
+    ViewType.Documents,
+    ViewType.Automations,
+    ViewType.Integrations,
+  ];
+
   return (
     <div>
       <h2 className="text-3xl font-bold text-gray-800 dark:text-gray-200 mb-6">Configurações</h2>
@@ -40,10 +56,25 @@ const SettingsView: React.FC<SettingsViewProps> = ({ themes, activeTheme, onThem
         </div>
 
         <div className="border-t dark:border-gray-700 mt-8 pt-6">
-             <h3 className="text-lg font-bold text-gray-800 dark:text-gray-200 mb-2">Funções (Em Breve)</h3>
-             <p className="text-gray-500 dark:text-gray-400">Em breve, você poderá ativar ou desativar módulos específicos, como Gráfico de Gantt, Scrum e mais, para personalizar sua barra lateral.</p>
+             <h3 className="text-lg font-bold text-gray-800 dark:text-gray-200 mb-2">Módulos da Barra Lateral</h3>
+             <p className="text-gray-500 dark:text-gray-400 mb-6">Ative ou desative módulos para personalizar sua barra de navegação.</p>
+             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+                {toggleableViews.map(view => (
+                    <div key={view} className="flex items-center justify-between">
+                        <span className="text-gray-700 dark:text-gray-300">{view}</span>
+                        <label className="relative inline-flex items-center cursor-pointer">
+                            <input
+                                type="checkbox"
+                                checked={visibleViews[view] !== false}
+                                onChange={(e) => onVisibleViewsChange(view, e.target.checked)}
+                                className="sr-only peer"
+                            />
+                            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-600 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-500 peer-checked:bg-custom-blue"></div>
+                        </label>
+                    </div>
+                ))}
+             </div>
         </div>
-
       </div>
     </div>
   );

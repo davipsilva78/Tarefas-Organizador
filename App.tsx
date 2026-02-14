@@ -41,6 +41,17 @@ const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<ViewType>(ViewType.Dashboard);
   const [theme, setTheme] = useState<'light' | 'dark'>(() => (localStorage.getItem('theme') as 'light' | 'dark') || 'light');
   const [activeTheme, setActiveTheme] = useState<string>(() => localStorage.getItem('appTheme') || 'blue');
+  const [visibleViews, setVisibleViews] = useState<{ [key in ViewType]?: boolean }>(() => {
+    const savedViews = localStorage.getItem('visibleViews');
+    if (savedViews) {
+        return JSON.parse(savedViews);
+    }
+    // Default: all views are visible
+    return Object.values(ViewType).reduce((acc, view) => {
+        acc[view] = true;
+        return acc;
+    }, {} as { [key in ViewType]: boolean });
+  });
   
   // Modal states
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
@@ -99,9 +110,20 @@ const App: React.FC = () => {
       localStorage.setItem('appTheme', activeTheme);
     }
   }, [activeTheme]);
+  
+  useEffect(() => {
+    localStorage.setItem('visibleViews', JSON.stringify(visibleViews));
+  }, [visibleViews]);
 
   const toggleTheme = () => {
     setTheme(prev => (prev === 'light' ? 'dark' : 'light'));
+  };
+
+  const handleVisibleViewsChange = (view: ViewType, isVisible: boolean) => {
+    setVisibleViews(prev => ({
+        ...prev,
+        [view]: isVisible
+    }));
   };
 
   // Reminder check effect
@@ -331,7 +353,7 @@ const App: React.FC = () => {
       case ViewType.Integrations: return <IntegrationsView />;
       case ViewType.Documents: return <DocumentsView documents={data.documents || []} users={Object.values(data.users)} onOpen={handleOpenDocument} onSave={handleSaveDocument} />;
       case ViewType.Search: return <SearchResultsView results={searchResults} onTaskClick={handleOpenTaskModal} onDocumentClick={handleOpenDocument} />;
-      case ViewType.Settings: return <SettingsView themes={themes} activeTheme={activeTheme} onThemeChange={setActiveTheme} />;
+      case ViewType.Settings: return <SettingsView themes={themes} activeTheme={activeTheme} onThemeChange={setActiveTheme} visibleViews={visibleViews} onVisibleViewsChange={handleVisibleViewsChange} />;
       default: return <Dashboard tasks={tasksArray} />;
     }
   };
@@ -342,7 +364,7 @@ const App: React.FC = () => {
 
   return (
     <div className="flex h-screen bg-gray-100 dark:bg-gray-900 font-sans">
-      <Sidebar currentView={currentView} setCurrentView={setCurrentView} />
+      <Sidebar currentView={currentView} setCurrentView={setCurrentView} visibleViews={visibleViews} />
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header 
             currentUser={currentUser} 
