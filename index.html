@@ -7,15 +7,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Organizador de Tarefas Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      :root {
+        --custom-blue: #007BFF;
+        --custom-light-blue: #F0F7FF;
+        --custom-dark-blue: #0056b3;
+      }
+    </style>
     <script>
       tailwind.config = {
         darkMode: 'class',
         theme: {
           extend: {
             colors: {
-              'custom-blue': '#007BFF',
-              'custom-light-blue': '#F0F7FF',
-              'custom-dark-blue': '#0056b3',
+              'custom-blue': 'var(--custom-blue)',
+              'custom-light-blue': 'var(--custom-light-blue)',
+              'custom-dark-blue': 'var(--custom-dark-blue)',
               'custom-gray': '#6c757d',
               'custom-light-gray': '#f8f9fa',
             },

@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { User } from '../types';
 import Icon from './Icon';
 
@@ -12,6 +12,7 @@ interface UserEditModalProps {
 const UserEditModal: React.FC<UserEditModalProps> = ({ user, onClose, onSave }) => {
   const [name, setName] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (user) {
@@ -27,6 +28,17 @@ const UserEditModal: React.FC<UserEditModalProps> = ({ user, onClose, onSave }) 
     onSave({ ...user, name, avatarUrl });
   };
 
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setAvatarUrl(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center p-4">
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-md">
@@ -38,16 +50,26 @@ const UserEditModal: React.FC<UserEditModalProps> = ({ user, onClose, onSave }) 
         </div>
         <form onSubmit={handleSubmit}>
           <div className="p-6 space-y-4">
-            <div className="flex justify-center">
-                <img src={avatarUrl} alt="Avatar" className="w-24 h-24 rounded-full" />
+            <div className="flex flex-col items-center">
+                <img src={avatarUrl} alt="Avatar" className="w-24 h-24 rounded-full mb-2" />
+                <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleAvatarChange}
+                    className="hidden"
+                    accept="image/*"
+                />
+                <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="text-sm font-medium text-custom-blue hover:text-custom-dark-blue"
+                >
+                    Mudar Foto
+                </button>
             </div>
             <div>
               <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nome</label>
               <input type="text" id="name" value={name} onChange={(e) => setName(e.target.value)} className="w-full border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-md shadow-sm focus:ring-custom-blue focus:border-custom-blue" required />
-            </div>
-             <div>
-              <label htmlFor="avatarUrl" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">URL da Foto de Perfil</label>
-              <input type="text" id="avatarUrl" value={avatarUrl} onChange={(e) => setAvatarUrl(e.target.value)} className="w-full border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-md shadow-sm focus:ring-custom-blue focus:border-custom-blue" required />
             </div>
           </div>
           <div className="flex justify-end items-center p-4 border-t dark:border-gray-700 bg-gray-50 dark:bg-gray-900">

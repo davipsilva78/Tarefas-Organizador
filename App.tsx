@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { ViewType, Task, AppData, User, AutomationRule, Document } from './types';
 import { initialData } from './data/mockData';
+import { themes } from './data/themes';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 import Dashboard from './components/Dashboard';
@@ -23,6 +24,7 @@ import DocumentsView from './components/DocumentsView';
 import DocumentEditorModal from './components/DocumentEditorModal';
 import SearchView, { SearchFilters } from './components/SearchView';
 import SearchResultsView from './components/SearchResultsView';
+import SettingsView from './components/SettingsView';
 
 const App: React.FC = () => {
   const [data, setData] = useState<AppData>(() => {
@@ -38,6 +40,7 @@ const App: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [currentView, setCurrentView] = useState<ViewType>(ViewType.Dashboard);
   const [theme, setTheme] = useState<'light' | 'dark'>(() => (localStorage.getItem('theme') as 'light' | 'dark') || 'light');
+  const [activeTheme, setActiveTheme] = useState<string>(() => localStorage.getItem('appTheme') || 'blue');
   
   // Modal states
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
@@ -86,6 +89,16 @@ const App: React.FC = () => {
       document.documentElement.classList.remove('dark');
     }
   }, [theme]);
+
+  useEffect(() => {
+    const themeColors = themes[activeTheme]?.colors;
+    if (themeColors) {
+      Object.entries(themeColors).forEach(([key, value]) => {
+        document.documentElement.style.setProperty(key, value);
+      });
+      localStorage.setItem('appTheme', activeTheme);
+    }
+  }, [activeTheme]);
 
   const toggleTheme = () => {
     setTheme(prev => (prev === 'light' ? 'dark' : 'light'));
@@ -318,6 +331,7 @@ const App: React.FC = () => {
       case ViewType.Integrations: return <IntegrationsView />;
       case ViewType.Documents: return <DocumentsView documents={data.documents || []} users={Object.values(data.users)} onOpen={handleOpenDocument} onSave={handleSaveDocument} />;
       case ViewType.Search: return <SearchResultsView results={searchResults} onTaskClick={handleOpenTaskModal} onDocumentClick={handleOpenDocument} />;
+      case ViewType.Settings: return <SettingsView themes={themes} activeTheme={activeTheme} onThemeChange={setActiveTheme} />;
       default: return <Dashboard tasks={tasksArray} />;
     }
   };

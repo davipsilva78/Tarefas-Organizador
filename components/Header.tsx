@@ -35,16 +35,16 @@ const Header: React.FC<HeaderProps> = ({ currentView, currentUser, onAddTask, on
       <div className="flex items-center">
         <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200">{currentView}</h2>
       </div>
-      <div className="flex items-center space-x-4">
+      <div className="flex items-center space-x-2 sm:space-x-4">
         <div className="relative hidden md:block">
             <button onClick={onSearchClick} className="pl-10 pr-4 py-2 w-64 border border-gray-300 dark:border-gray-600 rounded-lg text-left text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-700 hover:border-custom-blue focus:outline-none focus:ring-2 focus:ring-custom-blue">
                 Pesquisar tarefas...
             </button>
             <Icon name="search" className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
         </div>
-        <button onClick={onAddTask} className="flex items-center bg-custom-blue text-white font-semibold px-4 py-2 rounded-lg hover:bg-custom-dark-blue transition-colors duration-200">
-          <Icon name="plus" className="w-5 h-5 mr-2" />
-          <span>Nova Tarefa</span>
+        <button onClick={onAddTask} className="flex items-center bg-custom-blue text-white font-semibold px-3 sm:px-4 py-2 rounded-lg hover:bg-custom-dark-blue transition-colors duration-200">
+          <Icon name="plus" className="w-5 h-5 md:mr-2" />
+          <span className="hidden md:inline">Nova Tarefa</span>
         </button>
         <button onClick={toggleTheme} className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700">
           <Icon name={theme === 'light' ? 'moon' : 'sun'} className="w-6 h-6 text-gray-600 dark:text-gray-300" />

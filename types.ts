@@ -12,6 +12,7 @@ export enum ViewType {
   Integrations = 'Integrações',
   Documents = 'Documentos',
   Search = 'Resultados da Pesquisa',
+  Settings = 'Configurações',
 }
 
 export enum Priority {

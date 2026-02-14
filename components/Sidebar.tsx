@@ -24,6 +24,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, setCurrentView }) => {
     { view: ViewType.Documents, icon: 'document' },
     { view: ViewType.Automations, icon: 'automations' },
     { view: ViewType.Integrations, icon: 'integrations' },
+    { view: ViewType.Settings, icon: 'settings' },
   ];
 
   const NavList: React.FC<{ items: { view: ViewType; icon: string }[] }> = ({ items }) => (
