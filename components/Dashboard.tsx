@@ -7,15 +7,6 @@ interface DashboardProps {
   tasks: Task[];
 }
 
-const FeatureCard: React.FC<{ icon: string; title: string }> = ({ icon, title }) => (
-    <div className="flex items-center p-4 bg-white dark:bg-gray-800 rounded-lg shadow-sm">
-        <div className="p-2 bg-custom-light-blue rounded-full">
-            <div className="w-4 h-4 text-custom-blue" />
-        </div>
-        <span className="ml-3 text-sm font-medium text-gray-700 dark:text-gray-300">{title}</span>
-    </div>
-);
-
 const Dashboard: React.FC<DashboardProps> = ({ tasks }) => {
   const features = [
     "Tarefas", "Listas de verificação", "Automação de tarefas", "Tarefas recorrentes", "Lousas",
