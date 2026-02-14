@@ -1,6 +1,6 @@
 {
   "name": "Organizador de Tarefas Pro",
-  "description": "Um organizador de tarefas versátil e prático com múltiplas visualizações como Kanban, Gantt, Calendário e Scrum. Inclui automação, relatórios e integrações para otimizar seu fluxo de trabalho.",
+  "description": "Um organizador de tarefas versátil e prático.",
   "requestFramePermissions": [
     "geolocation"
   ]
