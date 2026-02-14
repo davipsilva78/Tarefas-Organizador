@@ -50,7 +50,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ tasks, onTaskClick }) => {
           const tasksForDay = tasks.filter(t => t.dueDate && new Date(t.dueDate).toDateString() === d.toDateString());
           
           return (
-            <div key={i} className={`border border-gray-200 dark:border-gray-700 rounded-md p-2 h-32 flex flex-col ${isCurrentMonth ? 'bg-white dark:bg-gray-800' : 'bg-gray-50 dark:bg-gray-900/50'}`}>
+            <div key={i} className={`border border-gray-200 dark:border-gray-700 rounded-md p-2 h-28 sm:h-32 flex flex-col ${isCurrentMonth ? 'bg-white dark:bg-gray-800' : 'bg-gray-50 dark:bg-gray-900/50'}`}>
               <span className={`font-semibold text-sm self-end ${isToday ? 'bg-custom-blue text-white rounded-full h-6 w-6 flex items-center justify-center' : ''} ${!isCurrentMonth ? 'text-gray-400' : 'text-gray-700 dark:text-gray-300'}`}>
                 {d.getDate()}
               </span>

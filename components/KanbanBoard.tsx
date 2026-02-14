@@ -73,7 +73,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({ data, setData, onTaskClick })
             key={column.id}
             onDragOver={onDragOver}
             onDrop={(e) => onDrop(e, column.id)}
-            className="bg-gray-100 dark:bg-gray-900/50 rounded-lg p-3 w-80 flex-shrink-0 flex flex-col"
+            className="bg-gray-100 dark:bg-gray-900/50 rounded-lg p-3 w-72 sm:w-80 flex-shrink-0 flex flex-col"
           >
             <div className="flex justify-between items-center mb-4 px-1">
               <h3 className="font-semibold text-gray-700 dark:text-gray-300">{column.title}</h3>

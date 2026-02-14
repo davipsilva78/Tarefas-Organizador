@@ -219,26 +219,41 @@ const App: React.FC = () => {
   };
 
   // Task Handlers
-  const handleUpdateTask = (updatedTask: Task) => {
-    setData(prev => ({ ...prev, tasks: { ...prev.tasks, [updatedTask.id]: updatedTask }}));
-  };
-  
   const handleOpenTaskModal = (task: Task | null) => {
     setSelectedTask(task);
     setIsTaskModalOpen(true);
   };
   
   const handleSaveTask = (taskToSave: Task) => {
-    if (selectedTask || taskToSave.id) {
-       const taskData = taskToSave.id ? taskToSave : { ...taskToSave, id: selectedTask!.id };
-       handleUpdateTask(taskData);
+    const isEditing = !!selectedTask;
+
+    if (isEditing) {
+        const updatedTask = { ...selectedTask, ...taskToSave };
+        setData(prev => {
+            const oldTask = prev.tasks[selectedTask!.id];
+            const newTasks = { ...prev.tasks, [selectedTask!.id]: updatedTask };
+            let newColumns = { ...prev.columns };
+
+            if (oldTask && oldTask.status !== updatedTask.status) {
+                const sourceCol = Object.values(newColumns).find(col => col.title === oldTask.status);
+                const destCol = Object.values(newColumns).find(col => col.title === updatedTask.status);
+
+                if (sourceCol && destCol && sourceCol.id !== destCol.id) {
+                    newColumns[sourceCol.id] = { ...sourceCol, taskIds: sourceCol.taskIds.filter(id => id !== selectedTask!.id) };
+                    newColumns[destCol.id] = { ...destCol, taskIds: [...destCol.taskIds, selectedTask!.id] };
+                }
+            }
+            return { ...prev, tasks: newTasks, columns: newColumns };
+        });
     } else {
-      const newTaskId = `task-${Date.now()}`;
-      const newTask: Task = { ...taskToSave, id: newTaskId, createdAt: new Date() };
-      setData(prev => {
-        const todoColId = Object.keys(prev.columns).find(id => prev.columns[id].title === 'A Fazer') || 'col-1';
-        return { ...prev, tasks: { ...prev.tasks, [newTaskId]: newTask }, columns: { ...prev.columns, [todoColId]: { ...prev.columns[todoColId], taskIds: [...prev.columns[todoColId].taskIds, newTaskId] } } }
-      });
+        const newTaskId = `task-${Date.now()}`;
+        const newTask: Task = { ...taskToSave, id: newTaskId, createdAt: new Date() };
+        setData(prev => {
+            const destCol = Object.values(prev.columns).find(col => col.title === newTask.status) || Object.values(prev.columns)[0];
+            const newTasks = { ...prev.tasks, [newTaskId]: newTask };
+            const newColumns = { ...prev.columns, [destCol.id]: { ...destCol, taskIds: [...destCol.taskIds, newTaskId] } };
+            return { ...prev, tasks: newTasks, columns: newColumns };
+        });
     }
     setIsTaskModalOpen(false);
     setSelectedTask(null);

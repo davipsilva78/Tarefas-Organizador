@@ -54,7 +54,7 @@ const tasks: { [key: string]: Task } = {
     id: 'task-4',
     title: 'Testar a integração da API',
     description: 'Verificar se todos os endpoints estão funcionando corretamente.',
-    status: 'Em Progresso',
+    status: 'Conclusão Parcial',
     priority: Priority.High,
     dueDate: new Date(new Date().setDate(new Date().getDate() + 10)),
     startDate: new Date(new Date().setDate(new Date().getDate() + 1)),
@@ -90,11 +90,12 @@ export const initialData: AppData = {
   users: initialUsers,
   columns: {
     'col-1': { id: 'col-1', title: 'A Fazer', taskIds: ['task-1', 'task-5'] },
-    'col-2': { id: 'col-2', title: 'Em Progresso', taskIds: ['task-2', 'task-4'] },
+    'col-2': { id: 'col-2', title: 'Em Progresso', taskIds: ['task-2'] },
+    'col-5': { id: 'col-5', title: 'Conclusão Parcial', taskIds: ['task-4'] },
     'col-3': { id: 'col-3', title: 'Revisão', taskIds: ['task-6'] },
     'col-4': { id: 'col-4', title: 'Concluído', taskIds: ['task-3'] },
   },
-  columnOrder: ['col-1', 'col-2', 'col-3', 'col-4'],
+  columnOrder: ['col-1', 'col-2', 'col-5', 'col-3', 'col-4'],
   automations: [
     { id: 'auto-1', trigger: "o status de uma tarefa mudar para 'Concluído'", action: "arquivar a tarefa automaticamente", enabled: true },
     { id: 'auto-2', trigger: "uma nova tarefa for atribuída a um membro", action: "enviar uma notificação por e-mail", enabled: true },

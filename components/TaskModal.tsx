@@ -168,7 +168,58 @@ const TaskModal: React.FC<TaskModalProps> = ({ task, users, onClose, onSave }) =
                 </div>
             </div>
 
-             <div className="border-t dark:border-gray-700 pt-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Responsáveis</label>
+                    <div className="border border-gray-300 dark:border-gray-600 rounded-md p-2 max-h-40 overflow-y-auto">
+                        {users.map(user => (
+                            <div key={user.id} className="flex items-center py-1">
+                                <input type="checkbox" id={`user-${user.id}`} checked={(formData.assignees || []).some(u => u.id === user.id)} onChange={() => handleAssigneeChange(user.id)} className="h-4 w-4 rounded border-gray-300 text-custom-blue focus:ring-custom-blue" />
+                                <label htmlFor={`user-${user.id}`} className="ml-3 flex items-center text-sm text-gray-700 dark:text-gray-300">
+                                    <img src={user.avatarUrl} alt={user.name} className="w-6 h-6 rounded-full mr-2"/>
+                                    {user.name}
+                                </label>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+                <div className="space-y-4">
+                    <div>
+                        <label htmlFor="status" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Status</label>
+                        <select name="status" id="status" value={formData.status} onChange={handleInputChange} className="w-full border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-md shadow-sm focus:ring-custom-blue focus:border-custom-blue">
+                            {['A Fazer', 'Em Progresso', 'Conclusão Parcial', 'Revisão', 'Concluído'].map(s => <option key={s} value={s}>{s}</option>)}
+                        </select>
+                    </div>
+                    <div>
+                        <label htmlFor="priority" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Prioridade</label>
+                        <select name="priority" id="priority" value={formData.priority} onChange={handleInputChange} className="w-full border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-md shadow-sm focus:ring-custom-blue focus:border-custom-blue">
+                        {Object.values(Priority).map(p => <option key={p} value={p}>{p}</option>)}
+                        </select>
+                    </div>
+                    <div>
+                        <label htmlFor="recurring" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Recorrência</label>
+                        <select name="recurring" id="recurring" value={formData.recurring} onChange={handleInputChange} className="w-full border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-md shadow-sm focus:ring-custom-blue focus:border-custom-blue">
+                            <option value="none">Nenhuma</option>
+                            <option value="daily">Diária</option>
+                            <option value="weekly">Semanal</option>
+                            <option value="monthly">Mensal</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="startDate" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Data de Início</label>
+                <input type="date" name="startDate" id="startDate" value={formData.startDate ? formData.startDate.toISOString().split('T')[0] : ''} onChange={handleDateChange} className="w-full border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-md shadow-sm focus:ring-custom-blue focus:border-custom-blue" />
+              </div>
+              <div>
+                <label htmlFor="dueDate" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Data de Vencimento</label>
+                <input type="date" name="dueDate" id="dueDate" value={formData.dueDate ? formData.dueDate.toISOString().split('T')[0] : ''} onChange={handleDateChange} className="w-full border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-md shadow-sm focus:ring-custom-blue focus:border-custom-blue" />
+              </div>
+            </div>
+            
+            <div className="border-t dark:border-gray-700 pt-4">
                 <label htmlFor="location" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Localização</label>
                 <div className="flex items-center">
                     <input type="text" name="location" id="location" value={formData.location || ''} onChange={handleInputChange} placeholder="Ex: Escritório, Casa" className="flex-grow border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-md shadow-sm"/>
@@ -198,44 +249,6 @@ const TaskModal: React.FC<TaskModalProps> = ({ task, users, onClose, onSave }) =
                         )}
                     </div>
                 </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Responsáveis</label>
-                <div className="border border-gray-300 dark:border-gray-600 rounded-md p-2 max-h-32 overflow-y-auto">
-                    {users.map(user => (
-                        <div key={user.id} className="flex items-center py-1">
-                            <input type="checkbox" id={`user-${user.id}`} checked={(formData.assignees || []).some(u => u.id === user.id)} onChange={() => handleAssigneeChange(user.id)} className="h-4 w-4 rounded border-gray-300 text-custom-blue focus:ring-custom-blue" />
-                            <label htmlFor={`user-${user.id}`} className="ml-3 flex items-center text-sm text-gray-700 dark:text-gray-300">
-                                <img src={user.avatarUrl} alt={user.name} className="w-6 h-6 rounded-full mr-2"/>
-                                {user.name}
-                            </label>
-                        </div>
-                    ))}
-                </div>
-              </div>
-              <div>
-                <label htmlFor="priority" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Prioridade</label>
-                <select name="priority" id="priority" value={formData.priority} onChange={handleInputChange} className="w-full border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-md shadow-sm focus:ring-custom-blue focus:border-custom-blue">
-                  {Object.values(Priority).map(p => <option key={p} value={p}>{p}</option>)}
-                </select>
-                 <label htmlFor="recurring" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 mt-4">Recorrência</label>
-                 <select name="recurring" id="recurring" value={formData.recurring} onChange={handleInputChange} className="w-full border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-md shadow-sm focus:ring-custom-blue focus:border-custom-blue">
-                    <option value="none">Nenhuma</option>
-                    <option value="daily">Diária</option>
-                    <option value="weekly">Semanal</option>
-                    <option value="monthly">Mensal</option>
-                </select>
-              </div>
-              <div>
-                <label htmlFor="startDate" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Data de Início</label>
-                <input type="date" name="startDate" id="startDate" value={formData.startDate ? formData.startDate.toISOString().split('T')[0] : ''} onChange={handleDateChange} className="w-full border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-md shadow-sm focus:ring-custom-blue focus:border-custom-blue" />
-              </div>
-              <div>
-                <label htmlFor="dueDate" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Data de Vencimento</label>
-                <input type="date" name="dueDate" id="dueDate" value={formData.dueDate ? formData.dueDate.toISOString().split('T')[0] : ''} onChange={handleDateChange} className="w-full border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-md shadow-sm focus:ring-custom-blue focus:border-custom-blue" />
-              </div>
             </div>
           </div>
           <div className="flex justify-end items-center p-4 border-t dark:border-gray-700 bg-gray-50 dark:bg-gray-900">

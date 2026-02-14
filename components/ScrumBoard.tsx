@@ -15,6 +15,7 @@ const ScrumBoard: React.FC<ScrumBoardProps> = ({ data, setData, onTaskClick }) =
       'scrum-col-1': { id: 'scrum-col-1', title: 'Backlog do Produto', taskIds: [] },
       'scrum-col-2': { id: 'scrum-col-2', title: 'Backlog da Sprint', taskIds: [] },
       'scrum-col-3': { id: 'scrum-col-3', title: 'Em Progresso', taskIds: [] },
+      'scrum-col-6': { id: 'scrum-col-6', title: 'Conclusão Parcial', taskIds: [] },
       'scrum-col-4': { id: 'scrum-col-4', title: 'Revisão da Sprint', taskIds: [] },
       'scrum-col-5': { id: 'scrum-col-5', title: 'Concluído', taskIds: [] },
     };
@@ -24,6 +25,7 @@ const ScrumBoard: React.FC<ScrumBoardProps> = ({ data, setData, onTaskClick }) =
         'A Fazer': 'scrum-col-2',
         'Backlog da Sprint': 'scrum-col-2',
         'Em Progresso': 'scrum-col-3',
+        'Conclusão Parcial': 'scrum-col-6',
         'Revisão': 'scrum-col-4',
         'Revisão da Sprint': 'scrum-col-4',
         'Concluído': 'scrum-col-5'

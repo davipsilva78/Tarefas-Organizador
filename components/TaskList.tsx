@@ -17,8 +17,48 @@ const priorityClasses: { [key in Priority]: { dot: string, text: string } } = {
 
 const TaskList: React.FC<TaskListProps> = ({ tasks, onTaskClick }) => {
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md">
-      <div className="overflow-x-auto">
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
+      {/* Mobile View - Cards */}
+      <div className="md:hidden">
+        <div className="p-4 space-y-4">
+          {tasks.map(task => (
+            <div key={task.id} onClick={() => onTaskClick(task)} className="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg shadow-sm border dark:border-gray-700">
+              <div className="flex justify-between items-start mb-2">
+                 <p className="font-semibold text-gray-800 dark:text-white">{task.title}</p>
+                 <div className="flex items-center">
+                    <div className={`h-2.5 w-2.5 rounded-full mr-2 ${priorityClasses[task.priority].dot}`}></div>
+                    <span className={`text-sm ${priorityClasses[task.priority].text}`}>{task.priority}</span>
+                </div>
+              </div>
+              <div className="text-sm text-gray-500 dark:text-gray-400 space-y-2">
+                <div className="flex justify-between">
+                  <span className="font-semibold">Status:</span>
+                  <span>{task.status}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="font-semibold">Vencimento:</span>
+                  <span>{task.dueDate ? new Date(task.dueDate).toLocaleDateString() : 'N/D'}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="font-semibold">Responsáveis:</span>
+                   {task.assignees && task.assignees.length > 0 ? (
+                    <div className="flex items-center -space-x-2">
+                      {task.assignees.map(user => (
+                         <img key={user.id} className="w-8 h-8 rounded-full border-2 border-white dark:border-gray-800" src={user.avatarUrl} alt={user.name} title={user.name} />
+                      ))}
+                    </div>
+                  ) : (
+                    <span className="text-gray-400">N/D</span>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+      
+      {/* Desktop View - Table */}
+      <div className="hidden md:block overflow-x-auto">
         <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
           <thead className="text-xs text-gray-700 dark:text-gray-400 uppercase bg-gray-50 dark:bg-gray-700">
             <tr>
