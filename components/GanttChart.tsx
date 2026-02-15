@@ -26,8 +26,10 @@ const GanttChart: React.FC<GanttChartProps> = ({ tasks }) => {
     let maxDate = new Date(validTasks[0].dueDate!);
 
     validTasks.forEach(task => {
-      if (task.startDate! < minDate) minDate = new Date(task.startDate!);
-      if (task.dueDate! > maxDate) maxDate = new Date(task.dueDate!);
+      const taskStartDate = new Date(task.startDate!);
+      const taskDueDate = new Date(task.dueDate!);
+      if (taskStartDate < minDate) minDate = taskStartDate;
+      if (taskDueDate > maxDate) maxDate = taskDueDate;
     });
 
     const chartStartDate = new Date(minDate);
@@ -97,7 +99,7 @@ const GanttChart: React.FC<GanttChartProps> = ({ tasks }) => {
                      <div 
                         className="absolute h-8 bg-custom-blue rounded-md flex items-center px-2 group top-1/2 -translate-y-1/2"
                         style={{ left: `${left}%`, width: `${width}%` }}
-                        title={`${task.title}: ${task.startDate?.toLocaleDateString()} - ${task.dueDate?.toLocaleDateString()}`}
+                        title={`${task.title}: ${new Date(task.startDate!).toLocaleDateString()} - ${new Date(task.dueDate!).toLocaleDateString()}`}
                       >
                         <span className="text-white text-xs font-semibold truncate">{task.title}</span>
                          {task.assignees && task.assignees.length > 0 && <img src={task.assignees[0].avatarUrl} alt={task.assignees[0].name} title={task.assignees[0].name} className="w-6 h-6 rounded-full absolute right-1 border-2 border-white dark:border-gray-800"/>}
