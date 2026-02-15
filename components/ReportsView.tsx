@@ -1,4 +1,5 @@
 
+
 import React, { useState, useMemo } from 'react';
 import { Task, User, Priority } from '../types';
 
@@ -44,7 +45,7 @@ const ReportsView: React.FC<{ tasks: Task[]; users: User[] }> = ({ tasks, users 
             acc[task.status] = (acc[task.status] || 0) + 1;
             return acc;
         }, {} as Record<string, number>);
-        // Fix: Sort by the numeric count (at index 1) instead of the whole entry array.
+        // FIX: Sort by the numeric count (at index 1) instead of the whole entry array.
         return Object.entries(result).sort((a, b) => b[1] - a[1]);
     }, [filteredTasks]);
     const maxStatusCount = Math.max(...tasksByStatus.map(([, count]) => count), 1);

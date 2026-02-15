@@ -1,6 +1,6 @@
 
+
 import React, { useState, useEffect } from 'react';
-// Fix: Add KanbanColumn to imports to be used for explicit typing.
 import { GoogleGenAI } from '@google/genai';
 import { ViewType, Task, AppData, User, AutomationRule, Document, ChatMessage, ChatConversation, KanbanColumn } from './types';
 import { initialData } from './data/mockData';
@@ -210,9 +210,9 @@ const App: React.FC = () => {
             const newTasks = { ...prev.tasks, [selectedTask!.id]: updatedTask };
             let newColumns = { ...prev.columns };
             if (oldTask && oldTask.status !== updatedTask.status) {
-                // Fix: Explicitly type 'col' as 'KanbanColumn' to access its properties.
+                // FIX: Explicitly type 'col' as 'KanbanColumn' to resolve property access errors.
                 const sourceCol = Object.values(newColumns).find((col: KanbanColumn) => col.title === oldTask.status);
-                // Fix: Explicitly type 'col' as 'KanbanColumn' to access its properties.
+                // FIX: Explicitly type 'col' as 'KanbanColumn' to resolve property access errors.
                 const destCol = Object.values(newColumns).find((col: KanbanColumn) => col.title === updatedTask.status);
                 if (sourceCol && destCol && sourceCol.id !== destCol.id) {
                     newColumns[sourceCol.id] = { ...sourceCol, taskIds: sourceCol.taskIds.filter(id => id !== selectedTask!.id) };
@@ -225,7 +225,7 @@ const App: React.FC = () => {
         const newTaskId = `task-${Date.now()}`;
         const newTask: Task = { ...taskToSave, id: newTaskId, createdAt: new Date() };
         setData(prev => {
-            // Fix: Explicitly type 'col' as 'KanbanColumn' to access its properties.
+            // FIX: Explicitly type 'col' as 'KanbanColumn' to resolve property access errors.
             const destCol = Object.values(prev.columns).find((col: KanbanColumn) => col.title === newTask.status) || Object.values(prev.columns)[0];
             const newTasks = { ...prev.tasks, [newTaskId]: newTask };
             const newColumns = { ...prev.columns, [destCol.id]: { ...destCol, taskIds: [...destCol.taskIds, newTaskId] } };
@@ -335,7 +335,6 @@ const App: React.FC = () => {
 
         if (!otherUser) return;
 
-        // Fix: Explicitly type parameters in array methods to access their properties.
         const history = Object.values(data.chatMessages)
             .filter((m: ChatMessage) => m.conversationId === conversationId)
             .sort((a: ChatMessage,b: ChatMessage) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
