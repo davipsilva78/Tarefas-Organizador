@@ -1,6 +1,8 @@
 
 import React, { useState, useEffect } from 'react';
-import { ViewType, Task, AppData, User, AutomationRule, Document } from './types';
+// Fix: Add KanbanColumn to imports to be used for explicit typing.
+import { GoogleGenAI } from '@google/genai';
+import { ViewType, Task, AppData, User, AutomationRule, Document, ChatMessage, ChatConversation, KanbanColumn } from './types';
 import { initialData } from './data/mockData';
 import { themes } from './data/themes';
 import Sidebar from './components/Sidebar';
@@ -25,6 +27,8 @@ import DocumentEditorModal from './components/DocumentEditorModal';
 import SearchView, { SearchFilters } from './components/SearchView';
 import SearchResultsView from './components/SearchResultsView';
 import SettingsView from './components/SettingsView';
+import AboutView from './components/AboutView';
+import ChatView from './components/ChatView';
 
 const App: React.FC = () => {
   const [data, setData] = useState<AppData>(() => {
@@ -33,6 +37,8 @@ const App: React.FC = () => {
       const parsedData = JSON.parse(savedData);
       if (!Array.isArray(parsedData.automations)) parsedData.automations = [];
       if (!Array.isArray(parsedData.documents)) parsedData.documents = [];
+      if (!parsedData.conversations) parsedData.conversations = initialData.conversations;
+      if (!parsedData.chatMessages) parsedData.chatMessages = initialData.chatMessages;
       return parsedData;
     }
     return initialData;
@@ -46,7 +52,6 @@ const App: React.FC = () => {
     if (savedViews) {
         return JSON.parse(savedViews);
     }
-    // Default: all views are visible
     return Object.values(ViewType).reduce((acc, view) => {
         acc[view] = true;
         return acc;
@@ -71,6 +76,8 @@ const App: React.FC = () => {
     onConfirm: () => void;
   }>({ isOpen: false, title: '', message: '', onConfirm: () => {} });
 
+  // Gemini AI
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY! });
 
   useEffect(() => {
     const allUsers = JSON.parse(localStorage.getItem('taskAppUsers') || '{}');
@@ -126,66 +133,40 @@ const App: React.FC = () => {
     }));
   };
 
-  // Reminder check effect
   useEffect(() => {
     const checkReminders = () => {
-        if (!('Notification' in window) || Notification.permission !== 'granted') {
-            return;
-        }
-
+        if (!('Notification' in window) || Notification.permission !== 'granted') return;
         const now = new Date();
         const tasksToUpdate: Task[] = [];
-
-        // Fix: Explicitly type 'task' as 'Task' to resolve property access errors.
         Object.values(data.tasks).forEach((task: Task) => {
-            if (!task.hasReminder || !task.dueDate || task.reminderSent) {
-                return;
-            }
-
+            if (!task.hasReminder || !task.dueDate || task.reminderSent) return;
             const dueDate = new Date(task.dueDate);
             let offsetMillis = 0;
             const offset = task.reminderOffset || 0;
-
-            if (task.reminderOffsetUnit === 'minutes') {
-                offsetMillis = offset * 60 * 1000;
-            } else if (task.reminderOffsetUnit === 'hours') {
-                offsetMillis = offset * 60 * 60 * 1000;
-            } else if (task.reminderOffsetUnit === 'days') {
-                offsetMillis = offset * 24 * 60 * 60 * 1000;
-            }
-
+            if (task.reminderOffsetUnit === 'minutes') offsetMillis = offset * 60 * 1000;
+            else if (task.reminderOffsetUnit === 'hours') offsetMillis = offset * 60 * 60 * 1000;
+            else if (task.reminderOffsetUnit === 'days') offsetMillis = offset * 24 * 60 * 60 * 1000;
             const reminderTime = new Date(dueDate.getTime() - offsetMillis);
-            
             if (reminderTime <= now && dueDate > now) {
-                new Notification('Lembrete de Tarefa - Task Pro', {
-                    body: `Sua tarefa "${task.title}" precisa de atenção!`,
-                    icon: '/vite.svg' 
-                });
+                new Notification('Lembrete de Tarefa - Task Pro', { body: `Sua tarefa "${task.title}" precisa de atenção!`, icon: '/vite.svg' });
                 tasksToUpdate.push({ ...task, reminderSent: true });
             }
         });
-
         if (tasksToUpdate.length > 0) {
             setData(prev => {
                 const newTasks = { ...prev.tasks };
-                tasksToUpdate.forEach(t => {
-                    newTasks[t.id] = t;
-                });
+                tasksToUpdate.forEach(t => { newTasks[t.id] = t; });
                 return { ...prev, tasks: newTasks };
             });
         }
     };
-
     const intervalId = setInterval(checkReminders, 60000);
     return () => clearInterval(intervalId);
   }, [data.tasks]);
 
-  // Search Handler
   const handleSearch = (filters: SearchFilters) => {
     const { keyword, startDate, endDate, location } = filters;
     const keywordLower = keyword.toLowerCase();
-
-    // Fix: Explicitly type 'task' as 'Task' to resolve property access errors.
     const filteredTasks = Object.values(data.tasks).filter((task: Task) => {
         const keywordMatch = !keywordLower || task.title.toLowerCase().includes(keywordLower) || (task.description && task.description.toLowerCase().includes(keywordLower));
         const startDateMatch = !startDate || (task.createdAt && new Date(task.createdAt) >= new Date(startDate));
@@ -193,7 +174,6 @@ const App: React.FC = () => {
         const locationMatch = !location || (task.location && task.location.toLowerCase().includes(location.toLowerCase()));
         return keywordMatch && startDateMatch && endDateMatch && locationMatch;
     });
-
     const filteredDocuments = data.documents.filter(doc => {
         const keywordMatch = !keywordLower || doc.name.toLowerCase().includes(keywordLower) || doc.content.toLowerCase().includes(keywordLower);
         const startDateMatch = !startDate || (doc.lastModified && new Date(doc.lastModified) >= new Date(startDate));
@@ -201,13 +181,11 @@ const App: React.FC = () => {
         const locationMatch = !location || (doc.location && doc.location.toLowerCase().includes(location.toLowerCase()));
         return keywordMatch && startDateMatch && endDateMatch && locationMatch;
     });
-
     setSearchResults({ tasks: filteredTasks, documents: filteredDocuments });
     setCurrentView(ViewType.Search);
     setIsSearchOpen(false);
   };
 
-  // Auth Handlers
   const handleLogin = (user: User) => {
     setCurrentUser(user);
     localStorage.setItem('taskAppCurrentUser', user.id);
@@ -218,7 +196,6 @@ const App: React.FC = () => {
     localStorage.removeItem('taskAppCurrentUser');
   };
 
-  // Task Handlers
   const handleOpenTaskModal = (task: Task | null) => {
     setSelectedTask(task);
     setIsTaskModalOpen(true);
@@ -226,18 +203,17 @@ const App: React.FC = () => {
   
   const handleSaveTask = (taskToSave: Task) => {
     const isEditing = !!selectedTask;
-
     if (isEditing) {
         const updatedTask = { ...selectedTask, ...taskToSave };
         setData(prev => {
             const oldTask = prev.tasks[selectedTask!.id];
             const newTasks = { ...prev.tasks, [selectedTask!.id]: updatedTask };
             let newColumns = { ...prev.columns };
-
             if (oldTask && oldTask.status !== updatedTask.status) {
-                const sourceCol = Object.values(newColumns).find(col => col.title === oldTask.status);
-                const destCol = Object.values(newColumns).find(col => col.title === updatedTask.status);
-
+                // Fix: Explicitly type 'col' as 'KanbanColumn' to access its properties.
+                const sourceCol = Object.values(newColumns).find((col: KanbanColumn) => col.title === oldTask.status);
+                // Fix: Explicitly type 'col' as 'KanbanColumn' to access its properties.
+                const destCol = Object.values(newColumns).find((col: KanbanColumn) => col.title === updatedTask.status);
                 if (sourceCol && destCol && sourceCol.id !== destCol.id) {
                     newColumns[sourceCol.id] = { ...sourceCol, taskIds: sourceCol.taskIds.filter(id => id !== selectedTask!.id) };
                     newColumns[destCol.id] = { ...destCol, taskIds: [...destCol.taskIds, selectedTask!.id] };
@@ -249,7 +225,8 @@ const App: React.FC = () => {
         const newTaskId = `task-${Date.now()}`;
         const newTask: Task = { ...taskToSave, id: newTaskId, createdAt: new Date() };
         setData(prev => {
-            const destCol = Object.values(prev.columns).find(col => col.title === newTask.status) || Object.values(prev.columns)[0];
+            // Fix: Explicitly type 'col' as 'KanbanColumn' to access its properties.
+            const destCol = Object.values(prev.columns).find((col: KanbanColumn) => col.title === newTask.status) || Object.values(prev.columns)[0];
             const newTasks = { ...prev.tasks, [newTaskId]: newTask };
             const newColumns = { ...prev.columns, [destCol.id]: { ...destCol, taskIds: [...destCol.taskIds, newTaskId] } };
             return { ...prev, tasks: newTasks, columns: newColumns };
@@ -259,7 +236,6 @@ const App: React.FC = () => {
     setSelectedTask(null);
   };
   
-  // User Handlers
   const handleAddUser = (newUser: User) => {
     const allUsers = JSON.parse(localStorage.getItem('taskAppUsers') || '{}');
     allUsers[newUser.id] = newUser;
@@ -281,33 +257,23 @@ const App: React.FC = () => {
     const allUsers = JSON.parse(localStorage.getItem('taskAppUsers') || '{}');
     delete allUsers[userId];
     localStorage.setItem('taskAppUsers', JSON.stringify(allUsers));
-    
     setData(prev => {
         const newUsers = { ...prev.users };
         delete newUsers[userId];
         const newTasks = { ...prev.tasks };
-        // Fix: Explicitly type 'task' as 'Task' to resolve property access errors.
         Object.values(newTasks).forEach((task: Task) => {
             if (task.assignees?.some(u => u.id === userId)) {
                 task.assignees = task.assignees.filter(u => u.id !== userId);
             }
         });
-        const newDocuments = prev.documents.map(doc => ({
-            ...doc,
-            sharedWith: doc.sharedWith.filter(u => u.id !== userId)
-        }));
+        const newDocuments = prev.documents.map(doc => ({ ...doc, sharedWith: doc.sharedWith.filter(u => u.id !== userId) }));
         return { ...prev, users: newUsers, tasks: newTasks, documents: newDocuments };
     });
   };
 
   const requestDeleteUser = (user: User) => {
       if (user.id === currentUser?.id) { alert("Você não pode remover a si mesmo."); return; }
-      setConfirmModalState({
-          isOpen: true,
-          title: 'Remover Membro',
-          message: `Tem certeza que deseja remover ${user.name}? Esta ação não pode ser desfeita.`,
-          onConfirm: () => executeDeleteUser(user.id)
-      });
+      setConfirmModalState({ isOpen: true, title: 'Remover Membro', message: `Tem certeza que deseja remover ${user.name}? Esta ação não pode ser desfeita.`, onConfirm: () => executeDeleteUser(user.id) });
   };
   
   const openUserModal = (user: User | null) => {
@@ -315,7 +281,6 @@ const App: React.FC = () => {
     setIsUserModalOpen(true);
   };
 
-  // Automation Handlers
   const handleSaveAutomation = (ruleToSave: AutomationRule) => {
       setData(prev => {
           const automations = Array.isArray(prev.automations) ? prev.automations : [];
@@ -336,7 +301,6 @@ const App: React.FC = () => {
   const handleDeleteAutomation = (ruleId: string) => { setData(prev => ({...prev, automations: prev.automations.filter(r => r.id !== ruleId)})); };
   const openAutomationModal = (rule: AutomationRule | null) => { setSelectedAutomation(rule); setIsAutomationModalOpen(true); };
 
-  // Document Handlers
   const handleOpenDocument = (doc: Document) => { setSelectedDocument(doc); setIsDocEditorOpen(true); };
   const handleSaveDocumentContent = (docId: string, content: string) => { setData(prev => ({ ...prev, documents: prev.documents.map(d => d.id === docId ? { ...d, content, lastModified: new Date() } : d) })); };
   const handleSaveDocument = (doc: Document) => {
@@ -351,8 +315,53 @@ const App: React.FC = () => {
           }
       });
   };
+  
+  const handleSendMessage = async (conversationId: string, text: string) => {
+    if (!currentUser) return;
+    const now = new Date();
+    const newMessage: ChatMessage = { id: `msg-${Date.now()}`, conversationId, senderId: currentUser.id, text, timestamp: now };
+    
+    setData(prev => {
+        const newMessages = { ...prev.chatMessages, [newMessage.id]: newMessage };
+        const updatedConversation: ChatConversation = { ...prev.conversations[conversationId], lastMessage: text, lastMessageTimestamp: now };
+        const newConversations = { ...prev.conversations, [conversationId]: updatedConversation };
+        return { ...prev, chatMessages: newMessages, conversations: newConversations };
+    });
 
-  // Render view
+    try {
+        const conversation = data.conversations[conversationId];
+        const otherParticipantId = conversation.participantIds.find(id => id !== currentUser.id);
+        const otherUser = otherParticipantId ? data.users[otherParticipantId] : null;
+
+        if (!otherUser) return;
+
+        // Fix: Explicitly type parameters in array methods to access their properties.
+        const history = Object.values(data.chatMessages)
+            .filter((m: ChatMessage) => m.conversationId === conversationId)
+            .sort((a: ChatMessage,b: ChatMessage) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
+            .map((m: ChatMessage) => {
+                const senderName = m.senderId === currentUser.id ? currentUser.name : otherUser.name;
+                return `${senderName}: ${m.text}`;
+            }).join('\n');
+        
+        const prompt = `Esta é uma conversa entre ${currentUser.name} e ${otherUser.name}.\n\n${history}\n${currentUser.name}: ${text}\n${otherUser.name}:`;
+        const response = await ai.models.generateContent({ model: 'gemini-3-flash-preview', contents: prompt });
+        const aiResponseText = response.text;
+
+        if (aiResponseText) {
+            const aiMessage: ChatMessage = { id: `msg-${Date.now() + 1}`, conversationId, senderId: otherUser.id, text: aiResponseText, timestamp: new Date() };
+            setData(prev => {
+                const newMessages = { ...prev.chatMessages, [aiMessage.id]: aiMessage };
+                const updatedConversation: ChatConversation = { ...prev.conversations[conversationId], lastMessage: aiResponseText, lastMessageTimestamp: aiMessage.timestamp };
+                const newConversations = { ...prev.conversations, [conversationId]: updatedConversation };
+                return { ...prev, chatMessages: newMessages, conversations: newConversations };
+            });
+        }
+    } catch (error) {
+        console.error("Erro ao gerar resposta da IA:", error);
+    }
+  };
+
   const renderView = () => {
     const tasksArray = Object.values(data.tasks);
     switch (currentView) {
@@ -363,12 +372,14 @@ const App: React.FC = () => {
       case ViewType.Gantt: return <GanttChart tasks={tasksArray} />;
       case ViewType.Scrum: return <ScrumBoard data={data} setData={setData} onTaskClick={handleOpenTaskModal} />;
       case ViewType.Team: return <TeamView users={Object.values(data.users)} onAddUser={handleAddUser} onEditUser={openUserModal} onDeleteUserRequest={requestDeleteUser} />;
+      case ViewType.Chat: return <ChatView currentUser={currentUser!} users={data.users} conversations={Object.values(data.conversations)} messages={Object.values(data.chatMessages)} onSendMessage={handleSendMessage} />;
       case ViewType.Reports: return <ReportsView tasks={tasksArray} users={Object.values(data.users)} />;
       case ViewType.Automations: return <AutomationsView automations={data.automations || []} onOpenModal={openAutomationModal} onUpdate={handleUpdateAutomation} onDelete={handleDeleteAutomation} />;
       case ViewType.Integrations: return <IntegrationsView />;
       case ViewType.Documents: return <DocumentsView documents={data.documents || []} users={Object.values(data.users)} onOpen={handleOpenDocument} onSave={handleSaveDocument} />;
       case ViewType.Search: return <SearchResultsView results={searchResults} onTaskClick={handleOpenTaskModal} onDocumentClick={handleOpenDocument} />;
       case ViewType.Settings: return <SettingsView themes={themes} activeTheme={activeTheme} onThemeChange={setActiveTheme} visibleViews={visibleViews} onVisibleViewsChange={handleVisibleViewsChange} />;
+      case ViewType.About: return <AboutView />;
       default: return <Dashboard tasks={tasksArray} />;
     }
   };

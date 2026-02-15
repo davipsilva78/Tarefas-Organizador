@@ -7,12 +7,14 @@ export enum ViewType {
   Calendar = 'Calendário',
   Scrum = 'Scrum',
   Team = 'Equipe',
+  Chat = 'Chat',
   Reports = 'Relatórios',
   Automations = 'Automações',
   Integrations = 'Integrações',
   Documents = 'Documentos',
   Search = 'Resultados da Pesquisa',
   Settings = 'Configurações',
+  About = 'Sobre o aplicativo',
 }
 
 export enum Priority {
@@ -88,6 +90,22 @@ export interface KanbanColumn {
   taskIds: string[];
 }
 
+export interface ChatMessage {
+  id: string;
+  conversationId: string;
+  senderId: string;
+  text: string;
+  timestamp: Date;
+}
+
+export interface ChatConversation {
+  id: string;
+  name: string;
+  participantIds: string[];
+  lastMessage?: string;
+  lastMessageTimestamp?: Date;
+}
+
 export interface KanbanData {
   tasks: { [key: string]: Task };
   columns: { [key: string]: KanbanColumn };
@@ -98,6 +116,8 @@ export interface AppData extends KanbanData {
   users: { [key: string]: User };
   automations: AutomationRule[];
   documents: Document[];
+  conversations: { [key: string]: ChatConversation };
+  chatMessages: { [key: string]: ChatMessage };
 }
 
 export interface ScrumData extends AppData {}

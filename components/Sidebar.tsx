@@ -21,10 +21,12 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, setCurrentView, visibleV
 
   const toolsNavItems = [
     { view: ViewType.Team, icon: 'team' },
+    { view: ViewType.Chat, icon: 'chat' },
     { view: ViewType.Reports, icon: 'reports' },
     { view: ViewType.Documents, icon: 'document' },
     { view: ViewType.Automations, icon: 'automations' },
     { view: ViewType.Integrations, icon: 'integrations' },
+    { view: ViewType.About, icon: 'info' },
     { view: ViewType.Settings, icon: 'settings' },
   ];
 

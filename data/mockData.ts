@@ -1,5 +1,5 @@
 
-import { AppData, Priority, User, Task } from '../types';
+import { AppData, Priority, User, Task, ChatConversation, ChatMessage } from '../types';
 
 export const initialUsers: { [key: string]: User } = {
   'user-1': { id: 'user-1', name: 'Ana Silva', avatarUrl: 'https://i.pravatar.cc/150?u=user-1', password: '123' },
@@ -85,6 +85,32 @@ const tasks: { [key: string]: Task } = {
   },
 };
 
+const initialConversations: { [key: string]: ChatConversation } = {
+  'conv-1': {
+    id: 'conv-1',
+    name: 'Bruno Costa',
+    participantIds: ['user-1', 'user-2'],
+    lastMessage: 'Claro, vou verificar agora.',
+    lastMessageTimestamp: new Date(new Date().setMinutes(new Date().getMinutes() - 5)),
+  },
+  'conv-2': {
+    id: 'conv-2',
+    name: 'Carla Dias',
+    participantIds: ['user-1', 'user-3'],
+    lastMessage: 'Obrigada!',
+    lastMessageTimestamp: new Date(new Date().setHours(new Date().getHours() - 1)),
+  },
+};
+
+const initialChatMessages: { [key: string]: ChatMessage } = {
+    'msg-1': { id: 'msg-1', conversationId: 'conv-1', senderId: 'user-1', text: 'Oi Bruno, você pode dar uma olhada no status do deploy?', timestamp: new Date(new Date().setMinutes(new Date().getMinutes() - 6)) },
+    'msg-2': { id: 'msg-2', conversationId: 'conv-1', senderId: 'user-2', text: 'Claro, vou verificar agora.', timestamp: new Date(new Date().setMinutes(new Date().getMinutes() - 5)) },
+    'msg-3': { id: 'msg-3', conversationId: 'conv-2', senderId: 'user-1', text: 'Carla, o design da nova página de login está pronto para revisão.', timestamp: new Date(new Date().setHours(new Date().getHours() - 1) - 120000) },
+    'msg-4': { id: 'msg-4', conversationId: 'conv-2', senderId: 'user-3', text: 'Ótimo! Vou dar uma olhada hoje à tarde.', timestamp: new Date(new Date().setHours(new Date().getHours() - 1) - 60000) },
+    'msg-5': { id: 'msg-5', conversationId: 'conv-2', senderId: 'user-1', text: 'Perfeito, aguardo seu feedback.', timestamp: new Date(new Date().setHours(new Date().getHours() - 1) - 30000) },
+    'msg-6': { id: 'msg-6', conversationId: 'conv-2', senderId: 'user-3', text: 'Obrigada!', timestamp: new Date(new Date().setHours(new Date().getHours() - 1)) },
+};
+
 export const initialData: AppData = {
   tasks,
   users: initialUsers,
@@ -106,4 +132,6 @@ export const initialData: AppData = {
       { id: 'doc-2', name: 'Orçamento de Marketing', type: 'xlsx', content: 'Dados da planilha aqui...', lastModified: new Date(), sharedWith: [initialUsers['user-1']] },
       { id: 'doc-3', name: 'Apresentação para Investidores', type: 'ppt', content: 'Slide 1: Introdução...', lastModified: new Date(), sharedWith: Object.values(initialUsers) },
   ],
+  conversations: initialConversations,
+  chatMessages: initialChatMessages,
 };
