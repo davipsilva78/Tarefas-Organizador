@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect } from 'react';
 import { GoogleGenAI } from '@google/genai';
 import { ViewType, Task, AppData, User, AutomationRule, Document, ChatMessage, ChatConversation, KanbanColumn } from './types';
@@ -80,6 +81,9 @@ const App: React.FC = () => {
     onConfirm: () => void;
   }>({ isOpen: false, title: '', message: '', onConfirm: () => {} });
 
+  // Chat State
+  const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
+
   // Gemini AI
   const [ai, setAi] = useState<GoogleGenAI | null>(null);
 
@@ -104,6 +108,19 @@ const App: React.FC = () => {
     }
 
   }, []);
+
+    useEffect(() => {
+    // When switching to chat view, select the first conversation if none is selected
+    if (currentView === ViewType.Chat && !selectedConversationId && Object.keys(data.conversations).length > 0) {
+        // FIX: Add explicit types for sort callback parameters to avoid errors on property access.
+        const firstConvId = Object.values(data.conversations).sort((a: ChatConversation,b: ChatConversation) => (b.lastMessageTimestamp ? new Date(b.lastMessageTimestamp).getTime() : 0) - (a.lastMessageTimestamp ? new Date(a.lastMessageTimestamp).getTime() : 0))[0].id;
+        setSelectedConversationId(firstConvId);
+    }
+    // If not on chat view, deselect to improve mobile UX
+    if(currentView !== ViewType.Chat && selectedConversationId){
+      setSelectedConversationId(null);
+    }
+  }, [currentView, data.conversations, selectedConversationId]);
 
   useEffect(() => {
     localStorage.setItem('taskAppData', JSON.stringify(data));
@@ -218,12 +235,12 @@ const App: React.FC = () => {
         setData(prev => {
             const oldTask = prev.tasks[selectedTask!.id];
             const newTasks = { ...prev.tasks, [selectedTask!.id]: updatedTask };
-            let newColumns = { ...prev.columns };
+            // FIX: Explicitly type `newColumns` to help TypeScript understand its shape.
+            let newColumns: { [key: string]: KanbanColumn } = { ...prev.columns };
             if (oldTask && oldTask.status !== updatedTask.status) {
-                // FIX: Explicitly type 'col' as 'KanbanColumn' to allow accessing its properties without TypeScript errors.
-                const sourceCol = Object.values(newColumns).find((col: KanbanColumn) => col.title === oldTask.status);
-                // FIX: Explicitly type 'col' as 'KanbanColumn' to allow accessing its properties without TypeScript errors.
-                const destCol = Object.values(newColumns).find((col: KanbanColumn) => col.title === updatedTask.status);
+                // FIX: Explicitly type the found columns to avoid property access errors.
+                const sourceCol: KanbanColumn | undefined = Object.values(newColumns).find((col: KanbanColumn) => col.title === oldTask.status);
+                const destCol: KanbanColumn | undefined = Object.values(newColumns).find((col: KanbanColumn) => col.title === updatedTask.status);
                 if (sourceCol && destCol && sourceCol.id !== destCol.id) {
                     newColumns[sourceCol.id] = { ...sourceCol, taskIds: sourceCol.taskIds.filter(id => id !== selectedTask!.id) };
                     newColumns[destCol.id] = { ...destCol, taskIds: [...destCol.taskIds, selectedTask!.id] };
@@ -235,8 +252,8 @@ const App: React.FC = () => {
         const newTaskId = `task-${Date.now()}`;
         const newTask: Task = { ...taskToSave, id: newTaskId, createdAt: new Date() };
         setData(prev => {
-            // FIX: Explicitly type 'col' as 'KanbanColumn' to allow accessing its properties without TypeScript errors.
-            const destCol = Object.values(prev.columns).find((col: KanbanColumn) => col.title === newTask.status) || Object.values(prev.columns)[0];
+            // FIX: Explicitly type `destCol` to ensure correct type inference.
+            const destCol: KanbanColumn = Object.values(prev.columns).find((col: KanbanColumn) => col.title === newTask.status) || Object.values(prev.columns)[0];
             const newTasks = { ...prev.tasks, [newTaskId]: newTask };
             const newColumns = { ...prev.columns, [destCol.id]: { ...destCol, taskIds: [...destCol.taskIds, newTaskId] } };
             return { ...prev, tasks: newTasks, columns: newColumns };
@@ -267,9 +284,11 @@ const App: React.FC = () => {
     const allUsers = JSON.parse(localStorage.getItem('taskAppUsers') || '{}');
     delete allUsers[userId];
     localStorage.setItem('taskAppUsers', JSON.stringify(allUsers));
+    
     setData(prev => {
         const newUsers = { ...prev.users };
         delete newUsers[userId];
+
         const newTasks = { ...prev.tasks };
         Object.values(newTasks).forEach((task: Task) => {
             if (task.assignees?.some(u => u.id === userId)) {
@@ -277,7 +296,39 @@ const App: React.FC = () => {
             }
         });
         const newDocuments = prev.documents.map(doc => ({ ...doc, sharedWith: doc.sharedWith.filter(u => u.id !== userId) }));
-        return { ...prev, users: newUsers, tasks: newTasks, documents: newDocuments };
+        
+        // Cleanup conversations and messages
+        // FIX: Add explicit type to the callback parameter to allow property access.
+        const remainingConversations = Object.values(prev.conversations)
+            .filter((c: ChatConversation) => !c.participantIds.includes(userId))
+            .reduce((acc, c) => {
+                acc[c.id] = c;
+                return acc;
+            }, {} as { [key: string]: ChatConversation });
+
+        const remainingConversationIds = new Set(Object.keys(remainingConversations));
+
+        // FIX: Add explicit type to the callback parameter to allow property access.
+        const remainingChatMessages = Object.values(prev.chatMessages)
+            .filter((msg: ChatMessage) => remainingConversationIds.has(msg.conversationId))
+            .reduce((acc, msg) => {
+                acc[msg.id] = msg;
+                return acc;
+            }, {} as { [key: string]: ChatMessage });
+        
+        // Reset selected conversation if it was deleted
+        if(selectedConversationId && !remainingConversationIds.has(selectedConversationId)) {
+            setSelectedConversationId(Object.keys(remainingConversations)[0] || null);
+        }
+
+        return { 
+            ...prev, 
+            users: newUsers, 
+            tasks: newTasks, 
+            documents: newDocuments,
+            conversations: remainingConversations,
+            chatMessages: remainingChatMessages
+        };
     });
   };
 
@@ -346,6 +397,7 @@ const App: React.FC = () => {
         if (!otherUser) return;
 
         const history = Object.values(data.chatMessages)
+            // FIX: Add explicit types for filter, sort, and map callback parameters.
             .filter((m: ChatMessage) => m.conversationId === conversationId)
             .sort((a: ChatMessage,b: ChatMessage) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
             .map((m: ChatMessage) => {
@@ -371,6 +423,42 @@ const App: React.FC = () => {
     }
   };
 
+  const handleStartConversation = (participantId: string) => {
+    if (!currentUser) return;
+    
+    // Check if conversation already exists (only for 2 participants)
+    // FIX: Add explicit type to the find callback parameter to allow property access.
+    const existingConversation = Object.values(data.conversations).find((c: ChatConversation) => 
+        c.participantIds.length === 2 && c.participantIds.includes(currentUser.id) && c.participantIds.includes(participantId)
+    );
+
+    if (existingConversation) {
+        setSelectedConversationId(existingConversation.id);
+        return;
+    }
+    
+    const otherUser = data.users[participantId];
+    if (!otherUser) return;
+
+    const newConversationId = `conv-${Date.now()}`;
+    const newConversation: ChatConversation = {
+        id: newConversationId,
+        name: otherUser.name,
+        participantIds: [currentUser.id, participantId],
+        lastMessage: 'Inicie a conversa!',
+        lastMessageTimestamp: new Date(),
+    };
+
+    setData(prev => ({
+        ...prev,
+        conversations: {
+            ...prev.conversations,
+            [newConversationId]: newConversation,
+        }
+    }));
+    setSelectedConversationId(newConversationId);
+  };
+
   const renderView = () => {
     const tasksArray = Object.values(data.tasks);
     switch (currentView) {
@@ -381,7 +469,16 @@ const App: React.FC = () => {
       case ViewType.Gantt: return <GanttChart tasks={tasksArray} />;
       case ViewType.Scrum: return <ScrumBoard data={data} setData={setData} onTaskClick={handleOpenTaskModal} />;
       case ViewType.Team: return <TeamView users={Object.values(data.users)} onAddUser={handleAddUser} onEditUser={openUserModal} onDeleteUserRequest={requestDeleteUser} />;
-      case ViewType.Chat: return <ChatView currentUser={currentUser!} users={data.users} conversations={Object.values(data.conversations)} messages={Object.values(data.chatMessages)} onSendMessage={handleSendMessage} />;
+      case ViewType.Chat: return <ChatView 
+                                    currentUser={currentUser!} 
+                                    users={data.users} 
+                                    conversations={Object.values(data.conversations)} 
+                                    messages={Object.values(data.chatMessages)} 
+                                    onSendMessage={handleSendMessage} 
+                                    onStartConversation={handleStartConversation}
+                                    selectedConversationId={selectedConversationId}
+                                    onSelectConversation={setSelectedConversationId}
+                                />;
       case ViewType.Reports: return <ReportsView tasks={tasksArray} users={Object.values(data.users)} />;
       case ViewType.Automations: return <AutomationsView automations={data.automations || []} onOpenModal={openAutomationModal} onUpdate={handleUpdateAutomation} onDelete={handleDeleteAutomation} />;
       case ViewType.Integrations: return <IntegrationsView />;
