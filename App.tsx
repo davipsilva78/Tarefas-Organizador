@@ -1,6 +1,4 @@
 
-
-
 import React, { useState, useEffect } from 'react';
 import { GoogleGenAI } from '@google/genai';
 import { ViewType, Task, AppData, User, AutomationRule, Document, ChatMessage, ChatConversation, KanbanColumn } from './types';
@@ -35,12 +33,17 @@ const App: React.FC = () => {
   const [data, setData] = useState<AppData>(() => {
     const savedData = localStorage.getItem('taskAppData');
     if (savedData) {
-      const parsedData = JSON.parse(savedData);
-      if (!Array.isArray(parsedData.automations)) parsedData.automations = [];
-      if (!Array.isArray(parsedData.documents)) parsedData.documents = [];
-      if (!parsedData.conversations) parsedData.conversations = initialData.conversations;
-      if (!parsedData.chatMessages) parsedData.chatMessages = initialData.chatMessages;
-      return parsedData;
+      try {
+        const parsedData = JSON.parse(savedData);
+        if (!Array.isArray(parsedData.automations)) parsedData.automations = [];
+        if (!Array.isArray(parsedData.documents)) parsedData.documents = [];
+        if (!parsedData.conversations) parsedData.conversations = initialData.conversations;
+        if (!parsedData.chatMessages) parsedData.chatMessages = initialData.chatMessages;
+        return parsedData;
+      } catch (error) {
+        console.error("Failed to parse saved data from localStorage", error);
+        return initialData;
+      }
     }
     return initialData;
   });
@@ -78,9 +81,15 @@ const App: React.FC = () => {
   }>({ isOpen: false, title: '', message: '', onConfirm: () => {} });
 
   // Gemini AI
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY! });
+  const [ai, setAi] = useState<GoogleGenAI | null>(null);
 
   useEffect(() => {
+    if (process.env.API_KEY) {
+      setAi(new GoogleGenAI({ apiKey: process.env.API_KEY }));
+    } else {
+      console.error("Chave de API do Gemini (API_KEY) não encontrada. As funcionalidades de IA estarão desabilitadas.");
+    }
+
     const allUsers = JSON.parse(localStorage.getItem('taskAppUsers') || '{}');
     if (Object.keys(allUsers).length === 0) {
       localStorage.setItem('taskAppUsers', JSON.stringify(initialData.users));
@@ -318,7 +327,7 @@ const App: React.FC = () => {
   };
   
   const handleSendMessage = async (conversationId: string, text: string) => {
-    if (!currentUser) return;
+    if (!currentUser || !ai) return;
     const now = new Date();
     const newMessage: ChatMessage = { id: `msg-${Date.now()}`, conversationId, senderId: currentUser.id, text, timestamp: now };
     

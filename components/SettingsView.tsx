@@ -46,10 +46,10 @@ const SettingsView: React.FC<SettingsViewProps> = ({ themes, activeTheme, onThem
                         <div className="flex items-center justify-center">
                             <div 
                                 className="w-8 h-8 rounded-full mr-3" 
-                                // Fix: Cast 'theme' to 'Theme' to access its 'colors' property.
+                                // FIX: Cast 'theme' to 'Theme' to access its 'colors' property.
                                 style={{ backgroundColor: (theme as Theme).colors['--custom-blue'] }}
                             ></div>
-                            {/* Fix: Cast 'theme' to 'Theme' to access its 'name' property. */}
+                            {/* FIX: Cast 'theme' to 'Theme' to access its 'name' property. */}
                             <span className="font-semibold text-gray-700 dark:text-gray-200">{(theme as Theme).name}</span>
                         </div>
                     </button>

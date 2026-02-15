@@ -31,7 +31,7 @@ const ScrumBoard: React.FC<ScrumBoardProps> = ({ data, setData, onTaskClick }) =
         'Concluído': 'scrum-col-5'
     };
 
-    // Fix: Explicitly type 'task' as 'Task' to resolve property access errors.
+    // FIX: Explicitly type 'task' as 'Task' to resolve property access errors.
     Object.values(data.tasks).forEach((task: Task) => {
         const columnId = statusToScrumColumn[task.status] || 'scrum-col-1';
         scrumColumns[columnId as keyof typeof scrumColumns].taskIds.push(task.id);
